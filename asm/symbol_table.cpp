@@ -37,5 +37,13 @@ void load_predefined_symbols(symbol_table & st){
         st[lexer_string(special_registers[i])] = std::make_tuple(SYMBOL_TYPE_SPECIAL_REGISTER, i + 0x1b);
     }
     
+    static const char * stack_operations[] = {
+        "POP", "PEEK", "PUSH"  
+    };
+    
+    for(unsigned int i = 0; i < sizeof(stack_operations)/sizeof(char *); i++){
+        st[lexer_string(stack_operations[i])] = std::make_tuple(SYMBOL_TYPE_STACK_OPERATION, i + 0x18);
+    }
     
 }
+
