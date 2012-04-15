@@ -1,6 +1,9 @@
 #ifndef ASM_LEXER_HPP
 #define ASM_LEXER_HPP
 
+#include <string>
+#include <functional>
+
 enum LEXER_TOKEN_TYPE{
     ERROR = 0,
     WHITESPACE,
@@ -27,6 +30,16 @@ struct lexer_string{
     bool operator<(const lexer_string &)const;
     bool operator==(const lexer_string &)const;
 };
+
+namespace std{
+template<>
+class hash<lexer_string>{
+public:
+    std::size_t operator()(const lexer_string & s)const{
+        return std::hash<std::string>()(std::string(s.begin, s.end));   
+    }
+};
+} // namespace std
 
 struct lexer_token:public lexer_string{
     
