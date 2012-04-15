@@ -7,12 +7,15 @@
 #include <tuple>
 
 enum SYMBOL_TYPE{
-    BASIC_INSTRUCTION = 0,
-    LABEL,
-    REGISTER
+    SYMBOL_TYPE_BASIC_INSTRUCTION = 0,
+    SYMBOL_TYPE_NONBASIC_INSTRUCTION,
+    SYMBOL_TYPE_LABEL,
+    SYMBOL_TYPE_GENERAL_REGISTER,
+    SYMBOL_TYPE_SPECIAL_REGISTER,
+    SYMBOL_TYPE_STACK_OPERATION
 };
 
-typedef std::unordered_map<lexer_string, std::tuple<SYMBOL_TYPE, processor::word> > symbol_table;
+typedef std::unordered_map<lexer_string, std::tuple<SYMBOL_TYPE, processor::word>> symbol_table;
 
 void load_predefined_symbols(symbol_table &);
 

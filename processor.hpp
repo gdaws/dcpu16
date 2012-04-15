@@ -9,7 +9,7 @@ public:
     typedef unsigned long dword;
     typedef processor_exception exception;
     
-    static const int REGN = 8;
+    static const unsigned int REGN = 8;
     
     enum BASIC_OPCODES{
         SET = 1, 

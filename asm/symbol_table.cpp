@@ -7,18 +7,35 @@ void load_predefined_symbols(symbol_table & st){
         "SET", "ADD", " SUB", " MUL", "DIV", "MOD", "SHL", " SHR", "AND", "BOR", "XOR", "IFE", "IFN", "IFG", "IFB"
     };
     
-    for(int i = 0; i < sizeof(basic_instructions)/sizeof(char *); i++){
-        st[lexer_string(instructions[i])] = std::make_tuple(INSTRUCTION, i + 1);
+    for(unsigned int i = 0; i < sizeof(basic_instructions)/sizeof(char *); i++){
+        st[lexer_string(basic_instructions[i])] = std::make_tuple(SYMBOL_TYPE_BASIC_INSTRUCTION, i + 1);
     }
     
-    static const char * register_symbols[] = {
+    static const char * nonbasic_instructions[] = {
+        "JSR"  
+    };
+    
+    for(unsigned int i = 0; i < sizeof(nonbasic_instructions)/sizeof(char *); i++){
+        st[lexer_string(nonbasic_instructions[i])] = std::make_tuple(SYMBOL_TYPE_NONBASIC_INSTRUCTION, i + 1);
+    }
+    
+    static const char * general_registers[] = {
         "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"  
     };
     
-    assert(sizeof(register_symbol)/sizeof(char *) > processor::REGN);
+    assert(sizeof(general_registers)/sizeof(char *) > processor::REGN);
     
-    for(int i = 0; i < processor::REGN; i++){
-        st[lexer_string(register_symbol[i])] = std::make_tuple(REGISTER, i);
+    for(unsigned int i = 0; i < processor::REGN; i++){
+        st[lexer_string(general_registers[i])] = std::make_tuple(SYMBOL_TYPE_GENERAL_REGISTER, i);
     }
+    
+    static const char * special_registers[] = {
+        "SP", "PC", "O"  
+    };
+    
+    for(unsigned int i = 0; i < sizeof(special_registers)/sizeof(char *); i++){
+        st[lexer_string(special_registers[i])] = std::make_tuple(SYMBOL_TYPE_SPECIAL_REGISTER, i + 0x1b);
+    }
+    
     
 }
