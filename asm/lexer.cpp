@@ -86,20 +86,28 @@ bool lexer_string::operator==(const lexer_string & compare)const{
 }
 
 lexer_token::lexer_token()
-:line(1){
+:type(ERROR), line(1), column(1){
     
 }
 
 lexer_token::lexer_token(const char * begin, const char * end)
-:lexer_string(begin, end), line(1){
+:lexer_string(begin, end), type(ERROR), line(1){
     
 }
 
 bool scan(const char * begin, const char * end, lexer_token & token){
     
+    if(token.type != NEWLINE){
+        token.column = token.column + (token.end - token.begin);
+    }
+    else{
+        token.column = 1;
+    }
+    
     token.type = token_entry_symbol[static_cast<int>(*begin)];
     token.begin = begin;
     
+    const char * start_of_line = begin - token.column + 1;
     const char * cur = begin + 1;
     
     switch(token.type){
@@ -111,7 +119,7 @@ bool scan(const char * begin, const char * end, lexer_token & token){
         case NEWLINE:
             
             token.line++;
-                        
+            
             if(*begin == '\r' && cur != end && *cur == '\n'){
                 cur++;
             }
@@ -154,19 +162,4 @@ bool lexer::next(){
 
 bool lexer::at_end()const{
     return end == source_end;
-}
-
-unsigned short lexer::column()const{
-    return column(*this);   
-}
-
-unsigned short lexer::column(const lexer_token & token)const{
-    if(token.line > 1){
-        unsigned short column = 0;
-        for(const char * cur = begin; *cur != '\r' && *cur != '\n'; cur--) column++;
-        return column;
-    }
-    else{
-        return token.begin - source_begin + 1;
-    }
 }

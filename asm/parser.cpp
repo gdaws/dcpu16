@@ -1,8 +1,18 @@
 #include "parser.hpp"
+#include <cstdlib>
 
 parse_tree_node * parse_instruction(lexer & token);
 void parse_operand(lexer & token, std::vector<parse_tree_node *> & operands);
 void parse_subscript(lexer & token, std::vector<parse_tree_node *> & operands);
+
+static long int to_long_int(lexer & token){
+    char * endptr;
+    long int num = strtol(token.begin, &endptr, 0);
+    if(endptr != token.end){
+        throw parse_error("invalid number", token);
+    }
+    return num;
+}
 
 static bool next(lexer & token){
     
@@ -152,7 +162,7 @@ void parse_subscript(lexer & token, std::vector<parse_tree_node *> & operands){
         if(!next(token)){
             parse_error::throw_unexpected(token);
         }
-         
+        
         if(token.type == PLUS){
             
             if(!next(token) || token.type != WORD){
@@ -180,6 +190,18 @@ void parse_subscript(lexer & token, std::vector<parse_tree_node *> & operands){
         
         return;
     }
+}
+
+processor::word number::to_word()const{
+    
+    char * endptr;
+    unsigned long num = strtoul(value.begin, &endptr, 0);
+    
+    if(endptr != value.end){
+        throw parse_error("invalid number", error_location(value.line, 0));
+    }
+    
+    return static_cast<processor::word>(num);
 }
 
 parse_tree_node::parse_tree_node()
@@ -233,3 +255,15 @@ DEFINE_ACCEPT_METHOD(symbol)
 DEFINE_ACCEPT_METHOD(subscript_symbol)
 DEFINE_ACCEPT_METHOD(subscript_number)
 DEFINE_ACCEPT_METHOD(subscript_addition)
+
+#define DEFINE_VISIT_METHOD(construct_class) \
+    void parse_tree_node_visitor::visit(const construct_class *){}
+
+DEFINE_VISIT_METHOD(label);
+DEFINE_VISIT_METHOD(instruction);
+DEFINE_VISIT_METHOD(symbol);
+DEFINE_VISIT_METHOD(number);
+DEFINE_VISIT_METHOD(subscript_symbol);
+DEFINE_VISIT_METHOD(subscript_number);
+DEFINE_VISIT_METHOD(subscript_addition);
+

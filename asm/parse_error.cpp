@@ -1,17 +1,17 @@
 #include "parse_error.hpp"
 #include <sstream>
 
-parse_error::parse_error(const std::string & what, const lexer & where)
+parse_error::parse_error(const std::string & what, const error_location & where)
 :std::runtime_error(what), _where(where){
     
 }
 
-const lexer & parse_error::where()const{
+const error_location & parse_error::where()const{
     return _where;
 }
 
 void parse_error::throw_unexpected(const lexer & where){
-        
+    
     std::stringstream message;
     message << "unexpected ";
     
@@ -39,5 +39,5 @@ void parse_error::throw_unexpected(const lexer & where){
         }
     }
     
-    throw parse_error(message.str(), where);
+    throw parse_error(message.str(), error_location(where.line, where.column));
 }

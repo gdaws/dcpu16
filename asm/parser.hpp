@@ -3,8 +3,10 @@
 
 #include "parse_error.hpp"
 #include "lexer.hpp"
+#include "../processor.hpp"
 #include <vector>
 #include <stdexcept>
+#include <tuple>
 
 class label;
 class instruction;
@@ -16,13 +18,13 @@ class subscript_addition;
 
 class parse_tree_node_visitor{
 public:
-    virtual void visit(const label *)=0;
-    virtual void visit(const instruction *)=0;
-    virtual void visit(const symbol *)=0;
-    virtual void visit(const number *)=0;
-    virtual void visit(const subscript_symbol *)=0;
-    virtual void visit(const subscript_number *)=0;
-    virtual void visit(const subscript_addition *)=0;
+    virtual void visit(const label *);
+    virtual void visit(const instruction *);
+    virtual void visit(const symbol *);
+    virtual void visit(const number *);
+    virtual void visit(const subscript_symbol *);
+    virtual void visit(const subscript_number *);
+    virtual void visit(const subscript_addition *);
 };
 
 class parse_tree_node{
@@ -57,7 +59,7 @@ public:
 class number:public parse_tree_node{
 public:
     lexer_token value;
-    
+    processor::word to_word()const;
     virtual void accept(parse_tree_node_visitor &)const;
 };
 

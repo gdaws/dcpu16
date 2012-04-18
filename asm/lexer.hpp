@@ -46,6 +46,7 @@ struct lexer_token:public lexer_string{
     LEXER_TOKEN_TYPE type;
     
     unsigned short line;
+    unsigned short column;
     
     lexer_token();
     lexer_token(const char *, const char *);
@@ -60,9 +61,6 @@ public:
     bool next();
     
     bool at_end()const;
-    
-    unsigned short column()const;
-    unsigned short column(const lexer_token &)const;
 private:
     const char * source_begin;
     const char * source_end;
