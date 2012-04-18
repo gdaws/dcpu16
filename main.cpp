@@ -1,5 +1,7 @@
 #include "processor.hpp"
 #include "asm/parser.hpp"
+#include "asm/symbol_analyser.hpp"
+#include "asm/symbol_error.hpp"
 
 #include <string>
 #include <cstring>
@@ -8,47 +10,8 @@
 #include <fstream>
 #include <sstream>
 
-class test_visitor:public parse_tree_node_visitor{
-public:
-    
-    virtual void visit(const label *){
-        std::cout<<"label"<<std::endl;            
-    }
-    
-    virtual void visit(const instruction * ins){
-        
-        std::cout<<std::string(ins->operation.begin, ins->operation.end)<<" ";
-        
-        for(int i = 0; i < ins->operands.size(); i++){
-            ins->operands[i]->accept(*this);
-        }
-        std::cout<<std::endl;
-    }
-    
-    virtual void visit(const symbol * s){
-        std::cout<<std::string(s->value.begin, s->value.end)<<" ";
-    }
-     
-    virtual void visit(const number *){
-        std::cout<<"number"<<std::endl;
-    }
-    
-    virtual void visit(const subscript_symbol *){
-        std::cout<<"subscript_symbol"<<std::endl;
-    }
-    
-    virtual void visit(const subscript_number *){
-        std::cout<<"subscript_number"<<std::endl;
-    }
-    
-    virtual void visit(const subscript_addition *){
-        std::cout<<"subscript_addition"<<std::endl;
-    }
-    
-};
-
 int main(int argc, const char ** argv){
-    
+        
     if(argc < 2){
         std::cerr<<"missing filename argument"<<std::endl;
         return 0;
@@ -77,17 +40,17 @@ int main(int argc, const char ** argv){
     const char * end = begin + source.size();
     
     try{
-        const parse_tree_node * node = parse(begin, end);
+        auto parse_result = parse(begin, end);
         
-        test_visitor print;
-        
-        while(node){
-            node->accept(print);
-            node = node->get_next();
-        }
+        symbol_table symbols;
+        load_predefined_symbols(symbols);
+        load_symbols(parse_result, symbols);
     }
     catch(const parse_error & error){
-        std::cout<<filename<<":"<<error.where().line<<":"<<error.where().column()<<" Parse error: "<<error.what()<<std::endl;
+        std::cout<<filename<<":"<<error.where().line()<<":"<<error.where().column()<<" Parse error: "<<error.what()<<std::endl;
+    }
+    catch(const symbol_error & error){
+        std::cout<<filename<<":"<<error.where().line()<<":"<<error.where().column()<<" Symbol error: "<<error.what()<<std::endl;
     }
     
     return 0;
