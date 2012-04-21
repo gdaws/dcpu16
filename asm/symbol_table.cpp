@@ -20,7 +20,7 @@ void load_predefined_symbols(symbol_table & st){
     }
     
     static const char * general_registers[] = {
-        "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"  
+        "A", "B", "C", "X", "Y", "Z", "I", "J"
     };
     
     assert(sizeof(general_registers)/sizeof(char *) > processor::REGN);
