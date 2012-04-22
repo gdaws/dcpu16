@@ -13,9 +13,7 @@ class label;
 class instruction;
 class number;
 class symbol;
-class subscript_symbol;
-class subscript_number;
-class subscript_addition;
+class subscript;
 
 class parse_tree_node_visitor{
 public:
@@ -23,9 +21,7 @@ public:
     virtual void visit(const instruction *);
     virtual void visit(const symbol *);
     virtual void visit(const number *);
-    virtual void visit(const subscript_symbol *);
-    virtual void visit(const subscript_number *);
-    virtual void visit(const subscript_addition *);
+    virtual void visit(const subscript *);
 };
 
 class parse_tree_node{
@@ -61,6 +57,7 @@ class number:public parse_tree_node{
 public:
     lexer_token value;
     processor::word to_word()const;
+    static processor::word to_word(const lexer_token &);
     virtual void accept(parse_tree_node_visitor &)const;
 };
 
@@ -71,20 +68,9 @@ public:
     virtual void accept(parse_tree_node_visitor &)const;
 };
 
-class subscript_symbol:public symbol{
+class subscript:public parse_tree_node{
 public:
-    virtual void accept(parse_tree_node_visitor &)const;
-};
-
-class subscript_number:public number{
-public:
-    virtual void accept(parse_tree_node_visitor &)const;
-};
-
-class subscript_addition:public parse_tree_node{
-public:
-    lexer_token number;
-    lexer_token symbol;
+    std::vector<lexer_token> arguments;
     
     virtual void accept(parse_tree_node_visitor &)const;
 };

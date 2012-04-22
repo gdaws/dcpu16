@@ -3,6 +3,8 @@
 #include <sstream>
 #include <limits>
 
+#include <iostream>
+
 template<typename MapIterator>
 static SYMBOL_TYPE symbol_type(MapIterator iter){
     return std::get<0>(std::get<1>(*iter));
@@ -51,8 +53,7 @@ public:
     
     virtual void visit(const instruction *);
     virtual void visit(const symbol *);
-    virtual void visit(const subscript_symbol *);
-    virtual void visit(const subscript_addition *);
+    virtual void visit(const subscript *);
 private:
     void throw_unknown_symbol(const lexer_token & str);
     void throw_wrong_symbol_type(const lexer_token & str, SYMBOL_TYPE expected_type);
@@ -91,21 +92,17 @@ void check_symbols_visitor::visit(const symbol * symbol){
     }
 }
 
-void check_symbols_visitor::visit(const subscript_symbol * symbol){
+void check_symbols_visitor::visit(const subscript * symbol){
     
-    auto symbol_entry = symbols.find(symbol->value);
-    
-    if(symbols.end() == symbol_entry){
-        throw_unknown_symbol(symbol->value);
-    }
-}
-
-void check_symbols_visitor::visit(const subscript_addition * addition){
-    
-    auto symbol_entry = symbols.find(addition->symbol);
-    
-    if(symbols.end() == symbol_entry){
-        throw_unknown_symbol(addition->symbol);
+    for(auto arg: symbol->arguments){
+        if(arg.type == WORD){
+            
+            auto symbol_entry = symbols.find(arg);
+            
+            if(symbols.end() == symbol_entry){
+                throw_unknown_symbol(arg);
+            }
+        }
     }
 }
 
