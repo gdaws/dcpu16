@@ -37,9 +37,15 @@ template<>
 class hash<lexer_string>{
 public:
     std::size_t operator()(const lexer_string & string)const{
-        std::size_t hash_value = 0;
+        std::size_t hash_value;
         for(const char * cur = string.begin; cur != string.end; cur++){
-            hash_combine(hash_value, (*cur >= 'A' && *cur <= 'Z' ? 'a' + (*cur - 'A'): *cur));
+            char c = (*cur >= 'A' && *cur <= 'Z' ? 'a' + (*cur - 'A'): *cur);
+            if(cur == string.begin){
+                hash_value = std::hash<char>()(c);
+            }
+            else{
+                hash_value = hash_combine(hash_value, c);
+            }
         }
         return hash_value;
     }

@@ -3,11 +3,12 @@
 
 #include <functional>
 
-/* Copied from http://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x */
+/* 
+    http://www.boost.org/doc/libs/1_33_1/doc/html/hash_combine.html
+*/
 template <class T>
-inline void hash_combine(std::size_t& seed, const T& v){
-    std::hash<T> hasher;
-    seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+inline std::size_t hash_combine(const std::size_t & seed, const T & value){
+    return seed ^ (std::hash<T>()(value) + 0x9e3779b9 + (seed<<6) + (seed>>2));
 }
 
 #endif
