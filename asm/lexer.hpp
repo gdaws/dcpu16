@@ -1,6 +1,7 @@
 #ifndef ASM_LEXER_HPP
 #define ASM_LEXER_HPP
 
+#include "hash_combine.hpp"
 #include <string>
 #include <functional>
 
@@ -35,8 +36,12 @@ namespace std{
 template<>
 class hash<lexer_string>{
 public:
-    std::size_t operator()(const lexer_string & s)const{
-        return std::hash<std::string>()(std::string(s.begin, s.end));   
+    std::size_t operator()(const lexer_string & string)const{
+        std::size_t hash_value = 0;
+        for(const char * cur = string.begin; cur != string.end; cur++){
+            hash_combine(hash_value, (*cur >= 'A' && *cur <= 'Z' ? 'a' + (*cur - 'A'): *cur));
+        }
+        return hash_value;
     }
 };
 } // namespace std

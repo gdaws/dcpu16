@@ -2,6 +2,8 @@
 #include <cstring>
 #include <algorithm>
 
+#include <iostream>
+
 static const LEXER_TOKEN_TYPE token_entry_symbol[] = {
     ERROR,ERROR,ERROR,ERROR,ERROR,ERROR,ERROR,ERROR,
     ERROR,WHITESPACE,NEWLINE,ERROR,ERROR,NEWLINE,ERROR,ERROR,
@@ -73,16 +75,16 @@ lexer_string::lexer_string(const char * begin, const char * end)
     
 }
 
-static int compare_lexer_string(const lexer_string & a, const lexer_string & b){
-    return strncmp(a.begin, b.begin, std::min(a.end - a.begin, b.end - b.begin));
+static int compare_strings(const lexer_string & a, const lexer_string & b){
+    return strncasecmp(a.begin, b.begin, std::min(a.end - a.begin, b.end - b.begin));
 }
 
-bool lexer_string::operator<(const lexer_string & compare)const{
-    return compare_lexer_string(*this, compare) == -1;
+bool lexer_string::operator<(const lexer_string & compare_with)const{
+    return compare_strings(*this, compare_with) < 0;
 }
 
-bool lexer_string::operator==(const lexer_string & compare)const{
-    return compare_lexer_string(*this, compare) == 0;
+bool lexer_string::operator==(const lexer_string & compare_with)const{
+    return compare_strings(*this, compare_with) == 0;
 }
 
 lexer_token::lexer_token()
@@ -107,7 +109,6 @@ bool scan(const char * begin, const char * end, lexer_token & token){
     token.type = token_entry_symbol[static_cast<int>(*begin)];
     token.begin = begin;
     
-    const char * start_of_line = begin - token.column + 1;
     const char * cur = begin + 1;
     
     switch(token.type){
