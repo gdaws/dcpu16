@@ -4,7 +4,7 @@
 void load_predefined_symbols(symbol_table & st){
     
     static const char * basic_instructions[] = {
-        "SET", "ADD", " SUB", " MUL", "DIV", "MOD", "SHL", " SHR", "AND", "BOR", "XOR", "IFE", "IFN", "IFG", "IFB"
+        "SET", "ADD", "SUB", "MUL", "DIV", "MOD", "SHL", "SHR", "AND", "BOR", "XOR", "IFE", "IFN", "IFG", "IFB"
     };
     
     for(unsigned int i = 0; i < sizeof(basic_instructions)/sizeof(char *); i++){
@@ -23,7 +23,7 @@ void load_predefined_symbols(symbol_table & st){
         "A", "B", "C", "X", "Y", "Z", "I", "J"
     };
     
-    assert(sizeof(general_registers)/sizeof(char *) > processor::REGN);
+    assert(sizeof(general_registers)/sizeof(char *) >= processor::REGN);
     
     for(unsigned int i = 0; i < processor::REGN; i++){
         st[lexer_string(general_registers[i])] = std::make_tuple(SYMBOL_TYPE_GENERAL_REGISTER, i);
