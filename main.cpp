@@ -2,11 +2,14 @@
 #include "asm/parser.hpp"
 #include "asm/symbol_analyser.hpp"
 #include "asm/symbol_error.hpp"
+#include "asm/type_error.hpp"
+#include "asm/code_generator.hpp"
 
 #include <string>
 #include <cstring>
 #include <cstdio>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <sstream>
 
@@ -45,12 +48,26 @@ int main(int argc, const char ** argv){
         symbol_table symbols;
         load_predefined_symbols(symbols);
         load_symbols(parse_result, symbols);
+        
+        processor::word ram[128000];
+        
+        processor::word program_size = generate_code(parse_result, symbols, ram);
+        
+        for(processor::word i = 0; i < program_size; i++){
+            std::cout<<std::setw(4)<<std::setfill('0')<<std::hex<<ram[i]<<" ";
+            if((i + 1) % 8 == 0) std::cout<<std::endl;
+        }
+        
+        std::cout<<std::endl;
     }
     catch(const parse_error & error){
         std::cout<<filename<<":"<<error.where().line()<<":"<<error.where().column()<<" Parse error: "<<error.what()<<std::endl;
     }
     catch(const symbol_error & error){
         std::cout<<filename<<":"<<error.where().line()<<":"<<error.where().column()<<" Symbol error: "<<error.what()<<std::endl;
+    }
+    catch(const type_error & error){
+        std::cout<<filename<<":"<<error.where().line()<<":"<<error.where().column()<<" Type error: "<<error.what()<<std::endl;
     }
     
     return 0;
