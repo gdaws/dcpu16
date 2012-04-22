@@ -7,6 +7,7 @@
 #include <vector>
 #include <stdexcept>
 #include <tuple>
+#include <limits>
 
 class label;
 class instruction;
@@ -43,8 +44,8 @@ private:
 
 class label:public parse_tree_node{
 public:
+    static const processor::word ADDRESS_UNRESOLVED;
     lexer_token identifier;
-    
     virtual void accept(parse_tree_node_visitor &)const;
 };
 

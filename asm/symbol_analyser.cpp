@@ -1,6 +1,7 @@
 #include "symbol_analyser.hpp"
 #include "symbol_error.hpp"
 #include <sstream>
+#include <limits>
 
 template<typename MapIterator>
 static SYMBOL_TYPE symbol_type(MapIterator iter){
@@ -41,7 +42,7 @@ void labels_visitor::visit(const label * label){
         }
     }
     
-    symbols[label->identifier] = std::make_tuple(SYMBOL_TYPE_LABEL, 0);
+    symbols[label->identifier] = std::make_tuple(SYMBOL_TYPE_LABEL, label::ADDRESS_UNRESOLVED);
 }
 
 class check_symbols_visitor:public parse_tree_node_visitor{

@@ -245,6 +245,8 @@ const parse_tree_node * parse_tree_node::get_next()const{
     return next;
 }
 
+const processor::word label::ADDRESS_UNRESOLVED = std::numeric_limits<processor::word>::max();
+
 #define DEFINE_ACCEPT_METHOD(Class) \
     void Class::accept(parse_tree_node_visitor & visitor)const{visitor.visit(this);}
 
