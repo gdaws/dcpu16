@@ -12,9 +12,79 @@
 #include <iomanip>
 #include <fstream>
 #include <sstream>
+#include <map>
+
+#include <signal.h>
+#include <readline/readline.h>
+
+static bool running = false;
+static int program_size;
+
+static void run(processor & p){
+    
+    p.pc = 0;
+    p.sp = std::numeric_limits<processor::word>::max();
+    running = true;
+    
+    while(running){
+        p.run();
+    }
+    
+    std::cout<<std::endl;
+}
+
+static void dump_mem(processor & p){
+    
+    for(processor::word i = 0; i < program_size; i++){
+        std::cout<<std::setw(4)<<std::setfill('0')<<std::hex<<p.ram[i]<<" ";
+        if((i + 1) % 8 == 0) std::cout<<std::endl;
+    }
+    
+    std::cout<<std::endl;
+}
+
+static void dump_registers(processor & p){
+    
+    const char * general_registers[] = {
+        "A", "B", "C", "X", "Y", "Z", "I", "J"  
+    };
+    
+    std::cout.setf(std::ios::hex, std::ios::basefield);
+    
+    std::cout<<"PC:"<<std::setw(4)<<std::setfill('0')<<p.pc<<" ";
+    std::cout<<"SP:"<<std::setw(4)<<std::setfill('0')<<p.sp<<std::endl;
+    
+    for(unsigned int i = 0; i < processor::REGN; i++){
+        std::cout<<general_registers[i]<<": "<<std::setw(4)<<std::setfill('0')<<p.reg[i]<<((i + 1) % 3 == 0 ? "\n" : " ");
+    }
+    std::cout<<std::endl;
+    
+    std::cout<<"O: "<<std::setw(4)<<std::setfill('0')<<p.overflow<<std::endl;
+}
+
+static void quit(processor & p){
+    exit(0);
+}
+
+static void interrupt(int){
+    
+    if(running == false){
+        exit(0);
+    }
+    
+    running = false;
+}
 
 int main(int argc, const char ** argv){
-        
+    
+    signal(SIGINT, interrupt);
+    
+    std::map<std::string, void(*)(processor &)> ui_commands;
+    ui_commands["quit"] = quit;
+    ui_commands["mem"] = dump_mem;
+    ui_commands["regs"] = dump_registers;
+    ui_commands["run"] = run;
+    
     if(argc < 2){
         std::cerr<<"missing filename argument"<<std::endl;
         return 0;
@@ -51,35 +121,39 @@ int main(int argc, const char ** argv){
         
         processor::word ram[128000];
         
-        processor::word program_size = generate_code(parse_result, symbols, ram);
+        program_size = generate_code(parse_result, symbols, ram);
         
         processor processor;
         processor.ram = ram;
-        processor.pc = 0;
-        processor.sp = std::numeric_limits<processor::word>::max();
         
         while(std::cin.good()){
-            processor.run();
+            
+            const char * line = readline("> ");
+            
+            if(!line) break;
+            if(line[0] == '\0') continue;
+            
+            auto ui_command_iter = ui_commands.find(line);
+            
+            if(ui_command_iter != ui_commands.end()){
+                (*ui_command_iter).second(processor);
+            }
+            else{
+                std::cout<<"unknown command"<<std::endl;
+            }
         }
-        
-        for(processor::word i = 0; i < program_size; i++){
-            std::cout<<std::setw(4)<<std::setfill('0')<<std::hex<<ram[i]<<" ";
-            if((i + 1) % 8 == 0) std::cout<<std::endl;
-        }
-        
-        std::cout<<std::endl;
     }
     catch(const parse_error & error){
-        std::cout<<filename<<":"<<error.where().line()<<":"<<error.where().column()<<" Parse error: "<<error.what()<<std::endl;
+        std::cerr<<filename<<":"<<error.where().line()<<":"<<error.where().column()<<" Parse error: "<<error.what()<<std::endl;
     }
     catch(const symbol_error & error){
-        std::cout<<filename<<":"<<error.where().line()<<":"<<error.where().column()<<" Symbol error: "<<error.what()<<std::endl;
+        std::cerr<<filename<<":"<<error.where().line()<<":"<<error.where().column()<<" Symbol error: "<<error.what()<<std::endl;
     }
     catch(const type_error & error){
-        std::cout<<filename<<":"<<error.where().line()<<":"<<error.where().column()<<" Type error: "<<error.what()<<std::endl;
+        std::cerr<<filename<<":"<<error.where().line()<<":"<<error.where().column()<<" Type error: "<<error.what()<<std::endl;
     }
     catch(const processor::exception & error){
-        std::cout<<error.what()<<std::endl;
+        std::cerr<<error.what()<<std::endl;
     }
     
     return 0;
