@@ -53,6 +53,15 @@ int main(int argc, const char ** argv){
         
         processor::word program_size = generate_code(parse_result, symbols, ram);
         
+        processor processor;
+        processor.ram = ram;
+        processor.pc = 0;
+        processor.sp = std::numeric_limits<processor::word>::max();
+        
+        while(std::cin.good()){
+            processor.run();
+        }
+        
         for(processor::word i = 0; i < program_size; i++){
             std::cout<<std::setw(4)<<std::setfill('0')<<std::hex<<ram[i]<<" ";
             if((i + 1) % 8 == 0) std::cout<<std::endl;
@@ -68,6 +77,9 @@ int main(int argc, const char ** argv){
     }
     catch(const type_error & error){
         std::cout<<filename<<":"<<error.where().line()<<":"<<error.where().column()<<" Type error: "<<error.what()<<std::endl;
+    }
+    catch(const processor::exception & error){
+        std::cout<<error.what()<<std::endl;
     }
     
     return 0;

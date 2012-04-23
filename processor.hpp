@@ -1,5 +1,5 @@
-#ifndef PROCESSOR_HPP
-#define PROCESSOR_HPP
+#ifndef DCPU16_PROCESSOR_HPP
+#define DCPU16_PROCESSOR_HPP
 
 #include "processor_exception.hpp"
 
@@ -25,12 +25,11 @@ public:
     word reg[REGN];
     
     word * ram;
-    word * sp;
-    word * pc;
+    word sp;
+    word pc;
     word overflow;
-        
+    
     processor();
-    void load_program();
     void run();
 private:
     void run_nonbasic_instruction(word);

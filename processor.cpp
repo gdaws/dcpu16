@@ -1,18 +1,15 @@
 #include "processor.hpp"
 #include <limits>
+#include <iostream>
 
 processor::processor()
 :perform_execution(true){
     
 }
 
-void processor::load_program(){
-    
-}
-
 void processor::run(){
     
-    word instruction = *(pc++);
+    word instruction = ram[pc++];
     
     word opcode = instruction & 0xf;
     
@@ -20,7 +17,7 @@ void processor::run(){
         return run_nonbasic_instruction(instruction);
     }
     
-    word & a = *decode_value((instruction >> 0x04) & 0x40, internal_reg + 0);
+    word & a = *decode_value((instruction >> 0x04) & 0x3f, internal_reg + 0);
     word & b = *decode_value(instruction >> 0x0a, internal_reg + 1);
     
     if(!perform_execution){
@@ -33,7 +30,7 @@ void processor::run(){
     
     switch(static_cast<BASIC_OPCODES>(opcode)){
         case SET:
-            b = a;
+            a = b;
             return;
         case ADD:
             internal_reg[3] = a;
@@ -114,8 +111,8 @@ void processor::run_nonbasic_instruction(word instruction){
     
     switch(static_cast<NONBASIC_OPCODES>(opcode)){
         case JSR:
-            *(--sp) = pc - ram;
-            pc = ram + a;
+            ram[--sp] = pc;
+            pc = a;
             return;
         default:
             throw processor::exception("unrecognized opcode (in non-basic instruction)");
@@ -126,82 +123,45 @@ void processor::run_nonbasic_instruction(word instruction){
 processor::word * processor::decode_value(word ref, word * store){
     
     switch(ref){
-        case 0x00:
-        case 0x01:
-        case 0x02:
-        case 0x03:
-        case 0x04:
-        case 0x05:
-        case 0x06:
-        case 0x07:
+        
+        case 0x00: case 0x01: case 0x02: case 0x03: case 0x04: case 0x05: case 0x06: case 0x07:
             return reg + ref;
-        case 0x08:
-        case 0x09:
-        case 0x0a:
-        case 0x0b:
-        case 0x0c:
-        case 0x0d:
-        case 0x0e:
-        case 0x0f:
+        
+        case 0x08: case 0x09: case 0x0a: case 0x0b: case 0x0c: case 0x0d: case 0x0e: case 0x0f:
             return ram + reg[ref - 0x08];
-        case 0x10:
-        case 0x11:
-        case 0x12:
-        case 0x13:
-        case 0x14:
-        case 0x15:
-        case 0x16:
-        case 0x17:
-            return ram + (*(pc++) + reg[ref - 0x10]);
+        
+        case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16: case 0x17:
+            return ram + (pc++ + reg[ref - 0x10]);
+        
         case 0x18:
-            return ram + *(sp++);
+            return ram + sp++;
+        
         case 0x19:
-            return ram + *sp;
+            return ram + sp;
+        
         case 0x1a:
-            return ram + *(--sp);
+            return ram + --sp;
+        
         case 0x1b:
-            return sp;
+            return &sp;
+            
         case 0x1c:
-            return pc;
+            return &pc;
+        
         case 0x1d:
             return &overflow;
+        
         case 0x1e:
-            return ram + *(pc++);
+            return ram + pc++;
+        
         case 0x1f:
-            *store = *(pc++);
+            *store = ram[pc++];
             return store;
-        case 0x20:
-        case 0x21:
-        case 0x22:
-        case 0x23:
-        case 0x24:
-        case 0x25:
-        case 0x26:
-        case 0x27:
-        case 0x28:
-        case 0x29:
-        case 0x2a:
-        case 0x2b:
-        case 0x2c:
-        case 0x2d:
-        case 0x2e:
-        case 0x2f:
-        case 0x30:
-        case 0x31:
-        case 0x32:
-        case 0x33:
-        case 0x34:
-        case 0x35:
-        case 0x36:
-        case 0x37:
-        case 0x38:
-        case 0x39:
-        case 0x3a:
-        case 0x3b:
-        case 0x3c:
-        case 0x3d:
-        case 0x3e:
-        case 0x3f:
+        
+        case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25: case 0x26: case 0x27:
+        case 0x28: case 0x29: case 0x2a: case 0x2b: case 0x2c: case 0x2d: case 0x2e: case 0x2f:
+        case 0x30: case 0x31: case 0x32: case 0x33: case 0x34: case 0x35: case 0x36: case 0x37:
+        case 0x38: case 0x39: case 0x3a: case 0x3b: case 0x3c: case 0x3d: case 0x3e: case 0x3f:
             *store = ref - 0x20;
             return store;
     }
