@@ -4,7 +4,15 @@
 #include <limits>
 #include <vector>
 #include <tuple>
-#include <iostream>
+
+class inline_data_generator:public parse_tree_node_visitor{
+public:
+    inline_data_generator(processor::word *& pc);
+    virtual void visit(const number *);
+    virtual void visit(const string *);
+private:
+    processor::word *& pc;
+};
 
 class code_generator:public parse_tree_node_visitor{
 public:
@@ -15,6 +23,7 @@ public:
     virtual void visit(const symbol *);
     virtual void visit(const number *);
     virtual void visit(const subscript *);
+    virtual void visit(const inline_data *);
     
     processor::word words_written()const;
     void write_label_addresses();
@@ -45,7 +54,7 @@ void code_generator::visit(const label * label){
 }
 
 void code_generator::visit(const instruction * instruction){
-        
+    
     auto operation_symbol = symbols[instruction->operation];
     
     operation = pc++;
@@ -238,8 +247,34 @@ void code_generator::visit(const subscript * subscript){
     }
 }
 
+void code_generator::visit(const inline_data * inline_data){
+    
+    inline_data_generator generate_inline_data(pc);
+    
+    for(auto value: inline_data->values){
+        value->accept(generate_inline_data);
+    }
+}
+
 processor::word code_generator::words_written()const{
     return pc - ram;
+}
+
+inline_data_generator::inline_data_generator(processor::word * & _pc)
+:pc(_pc){
+    
+}
+
+void inline_data_generator::visit(const number * value){
+    *(pc++) = value->to_word();
+}
+
+void inline_data_generator::visit(const string * string){
+    const char * begin = string->value.begin + 1;
+    const char * end = string->value.end - 1;
+    for(const char * cur = begin; cur != end; cur++){
+        *(pc++) = *cur;
+    }
 }
 
 processor::word generate_code(const parse_tree_node * parse_result, symbol_table & symbols, processor::word * ram){

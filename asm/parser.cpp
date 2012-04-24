@@ -1,9 +1,12 @@
 #include "parser.hpp"
 #include <cstdlib>
 
-parse_tree_node * parse_instruction(lexer & token);
-void parse_operand(lexer & token, std::vector<parse_tree_node *> & operands);
-void parse_subscript(lexer & token, std::vector<parse_tree_node *> & operands);
+static parse_tree_node * parse_instruction(lexer & token);
+static parse_tree_node * parse_inline_data(lexer & token);
+
+static void parse_operand(lexer & token, std::vector<parse_tree_node *> & operands);
+static void parse_subscript(lexer & token, std::vector<parse_tree_node *> & operands);
+static void parse_inline_data_value(lexer & token, std::vector<parse_tree_node *> & operands);
 
 static bool next(lexer & token){
     
@@ -33,7 +36,7 @@ parse_tree_node * parse(const char * begin, const char * end){
             
             case WORD:{
                 
-                parse_tree_node * next = parse_instruction(token);
+                parse_tree_node * next = (token == "DAT" ? parse_inline_data(token) : parse_instruction(token));
                 
                 if(tail){
                     next->insert(tail);
@@ -78,7 +81,7 @@ parse_tree_node * parse(const char * begin, const char * end){
     return head;
 }
 
-parse_tree_node * parse_instruction(lexer & token){
+static parse_tree_node * parse_instruction(lexer & token){
     
     lexer_token operation = token;
     std::vector<parse_tree_node *> operands;
@@ -93,7 +96,7 @@ parse_tree_node * parse_instruction(lexer & token){
     return node;
 }
 
-void parse_operand(lexer & token, std::vector<parse_tree_node *> & operands){
+static void parse_operand(lexer & token, std::vector<parse_tree_node *> & operands){
     
     switch(token.type){
         case WORD:{
@@ -144,7 +147,7 @@ static void parse_subscript_argument(lexer & token, subscript * node){
     }
 }
 
-void parse_subscript(lexer & token, std::vector<parse_tree_node *> & operands){
+static void parse_subscript(lexer & token, std::vector<parse_tree_node *> & operands){
     
     if(!next(token)){
         parse_error::throw_unexpected(token);
@@ -163,6 +166,47 @@ void parse_subscript(lexer & token, std::vector<parse_tree_node *> & operands){
     }
     
     operands.push_back(node);
+}
+
+static parse_tree_node * parse_inline_data(lexer & token){
+    
+    std::vector<parse_tree_node *> values;
+    
+    if(next(token) && token.type != NEWLINE){
+        parse_inline_data_value(token, values);
+    }
+    
+    inline_data * node = new inline_data;
+    node->values = values;
+    return node;
+}
+
+static void parse_inline_data_value(lexer & token, std::vector<parse_tree_node *> & operands){
+    
+    switch(token.type){
+        case NUMBER:{
+            number * node = new number;
+            node->value = token;
+            operands.push_back(node);
+            break;
+        }
+        case STRING:{
+            string * node = new string;
+            node->value = token;
+            operands.push_back(node);
+            break;
+        }
+        default: parse_error::throw_unexpected(token);
+    }
+    
+    if(next(token) && token.type == COMMA){
+        if(next(token)){
+            return parse_inline_data_value(token, operands);
+        }
+        else{
+            parse_error::throw_unexpected(token);
+        }
+    }
 }
 
 processor::word number::to_word(const lexer_token & token){
@@ -232,6 +276,8 @@ DEFINE_ACCEPT_METHOD(instruction)
 DEFINE_ACCEPT_METHOD(number)
 DEFINE_ACCEPT_METHOD(symbol)
 DEFINE_ACCEPT_METHOD(subscript)
+DEFINE_ACCEPT_METHOD(string)
+DEFINE_ACCEPT_METHOD(inline_data)
 
 #define DEFINE_VISIT_METHOD(construct_class) \
     void parse_tree_node_visitor::visit(const construct_class *){}
@@ -241,4 +287,5 @@ DEFINE_VISIT_METHOD(instruction)
 DEFINE_VISIT_METHOD(symbol)
 DEFINE_VISIT_METHOD(number)
 DEFINE_VISIT_METHOD(subscript)
-
+DEFINE_VISIT_METHOD(string)
+DEFINE_VISIT_METHOD(inline_data)
