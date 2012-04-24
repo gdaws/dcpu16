@@ -14,7 +14,8 @@ token_entry_symbols = [
     (93, 93,   "CLOSE_SUBSCRIPT"),
     (44, 44,   "COMMA"),
     (43, 43,   "PLUS"),
-    (58, 58,   "LABEL")
+    (58, 58,   "LABEL"),
+    (34, 34,   "STRING")
 ]
 
 word_symbols = [
@@ -29,6 +30,11 @@ number_symbols = [
     (65, 70),
     (97, 102),
     (120, 120)
+]
+
+string_symbols = [
+    (32, 33),
+    (35, 126)
 ]
 
 
@@ -47,7 +53,7 @@ def token_set(i, symbol_ranges):
 
 output = ""
 for i in range(127):
-    output += token_identifier(i, token_entry_symbols) + ","
+    output += token_set(i, string_symbols) + ","
     if (i + 1) % 8 == 0:
         output += "\n"
 print output
