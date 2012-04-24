@@ -1,5 +1,5 @@
-#ifndef ASM_LEXER_HPP
-#define ASM_LEXER_HPP
+#ifndef DCPU16_ASM_LEXER_HPP
+#define DCPU16_ASM_LEXER_HPP
 
 #include "hash_combine.hpp"
 #include <string>
@@ -16,7 +16,8 @@ enum LEXER_TOKEN_TYPE{
     COMMA,
     OPEN_SUBSCRIPT,
     CLOSE_SUBSCRIPT,
-    PLUS
+    PLUS,
+    STRING
 };
 
 struct lexer_string{

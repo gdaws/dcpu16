@@ -1,15 +1,14 @@
 #include "lexer.hpp"
+#include "parse_error.hpp"
 #include <cstring>
 #include <algorithm>
-
-#include <iostream>
 
 static const LEXER_TOKEN_TYPE token_entry_symbol[] = {
     ERROR,ERROR,ERROR,ERROR,ERROR,ERROR,ERROR,ERROR,
     ERROR,WHITESPACE,NEWLINE,ERROR,ERROR,NEWLINE,ERROR,ERROR,
     ERROR,ERROR,ERROR,ERROR,ERROR,ERROR,ERROR,ERROR,
     ERROR,ERROR,ERROR,ERROR,ERROR,ERROR,ERROR,ERROR,
-    WHITESPACE,ERROR,ERROR,ERROR,ERROR,ERROR,ERROR,ERROR,
+    WHITESPACE,ERROR,STRING,ERROR,ERROR,ERROR,ERROR,ERROR,
     ERROR,ERROR,ERROR,PLUS,COMMA,ERROR,ERROR,ERROR,
     NUMBER,NUMBER,NUMBER,NUMBER,NUMBER,NUMBER,NUMBER,NUMBER,
     NUMBER,NUMBER,LABEL,COMMENT,ERROR,ERROR,ERROR,ERROR,
@@ -59,6 +58,25 @@ static const bool number_symbols[] = {
     0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,
     1,0,0,0,0,0,0
+};
+
+static const bool string_symbols[] = {
+    0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,
+    1,1,0,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1
 };
 
 lexer_string::lexer_string(){
@@ -137,6 +155,18 @@ bool scan(const char * begin, const char * end, lexer_token & token){
         
         case COMMENT:
             for(; cur != end && (*cur != '\r' && *cur != '\n'); cur++);
+            break;
+        
+        case STRING:
+            
+            for(; cur != end && string_symbols[static_cast<int>(*cur)]; cur++);
+            
+            if(cur == end || token_entry_symbol[static_cast<int>(*cur)] != STRING){
+                throw parse_error("expected '\"' before the end of the line", error_location(token));
+            }
+            
+            cur++;
+            
             break;
         
         default:;
