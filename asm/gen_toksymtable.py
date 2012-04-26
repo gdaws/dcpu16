@@ -5,6 +5,7 @@ token_entry_symbols = [
     (10, 10,   "NEWLINE"),
     (13, 13,   "NEWLINE"),
     (32, 32,   "WHITESPACE"),
+    (45, 45,   "NUMBER"),
     (48, 57,   "NUMBER"),
     (59, 59,   "COMMENT"),
     (65, 90,   "WORD"),
@@ -26,6 +27,7 @@ word_symbols = [
 ]
 
 number_symbols = [
+    (45, 45),
     (48, 57),
     (65, 70),
     (97, 102),
