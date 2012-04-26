@@ -94,7 +94,17 @@ lexer_string::lexer_string(const char * begin, const char * end)
 }
 
 static int compare_strings(const lexer_string & a, const lexer_string & b){
-    return strncasecmp(a.begin, b.begin, std::min(a.end - a.begin, b.end - b.begin));
+    
+    std::size_t a_len = a.end - a.begin;
+    std::size_t b_len = b.end - b.begin;
+    
+    int diff = strncasecmp(a.begin, b.begin, std::min(a_len, b_len));
+    
+    if(a_len != b_len){
+        diff = a_len - b_len;
+    }
+    
+    return diff;
 }
 
 bool lexer_string::operator<(const lexer_string & compare_with)const{
