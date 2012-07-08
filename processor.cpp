@@ -26,9 +26,10 @@ void processor::run(){
     }
     
     const int WORD_DIGITS = std::numeric_limits<word>::digits;
-    const int WORD_MAX = std::numeric_limits<word>::max();
+    const word WORD_MAX = std::numeric_limits<word>::max();
     
     switch(static_cast<BASIC_OPCODES>(opcode)){
+        
         case SET:
             b = a;
             return;
@@ -93,7 +94,8 @@ void processor::run(){
             }
             
             return;
-            
+        }
+        
         case MOD:
             b = (a != 0 ? b % a : 0);
             return;
@@ -101,7 +103,7 @@ void processor::run(){
         case MDI:{
             
             signed_word ai = a;
-            signed_word bi = bi;
+            signed_word bi = b;
             
             b = (ai != 0 ? bi % ai : 0);
             
@@ -139,7 +141,6 @@ void processor::run(){
             return;
         }
         
-
         case IFB:
             perform_execution = (b & a) != 0;
             return;
@@ -180,7 +181,10 @@ void processor::run(){
         }
             
         case SBX:{
-                
+            word tmp = b;
+            b = b - a - ex;
+            ex = (tmp > b ? WORD_MAX : 0);
+            return;
         }
         
         case STI:
