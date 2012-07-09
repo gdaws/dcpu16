@@ -4,6 +4,7 @@ LDFLAGS=-lreadline
 
 SOURCES=main.cpp \
 	processor.cpp \
+	device.cpp \
 	processor_exception.cpp \
 	asm/lexer.cpp \
 	asm/parser.cpp \
