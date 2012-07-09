@@ -5,6 +5,11 @@
 #include <vector>
 #include <tuple>
 
+enum ARGUMENT_NAME{
+    ARG_A,
+    ARG_B
+};
+
 class inline_data_generator:public parse_tree_node_visitor{
 public:
     inline_data_generator(processor::word *& pc);
@@ -38,7 +43,9 @@ private:
     processor::word * pc;
     
     processor::word * operation;
+    
     unsigned int argument_position;
+    ARGUMENT_NAME argument_name;
     
     std::vector<std::tuple<const processor::word *, processor::word *>> label_references;
 };
@@ -63,13 +70,22 @@ void code_generator::visit(const instruction * instruction){
         case SYMBOL_TYPE_BASIC_INSTRUCTION:
             
             *operation = std::get<1>(operation_symbol);
-            argument_position = 4;
+            
             
             if(instruction->operands.size() != 2){
                 throw type_error("basic instruction takes 2 values", error_location(instruction->operation));
             }
             
+            argument_name = ARG_A;
+            argument_position = 10;
+            instruction->operands[1]->accept(*this);
+            
+            argument_name = ARG_B;
+            argument_position = 5;
+            instruction->operands[0]->accept(*this);
+            
             break;
+            
         case SYMBOL_TYPE_NONBASIC_INSTRUCTION:
             
             *operation = std::get<1>(operation_symbol) << 4;
@@ -79,13 +95,12 @@ void code_generator::visit(const instruction * instruction){
                 throw type_error("non-basic instruction takes 1 value", error_location(instruction->operation));
             }
             
+            argument_name = ARG_A;
+            argument_position = 10;
+            instruction->operands[0]->accept(*this);
+            
             break;
         default:;
-    }
-    
-    for(unsigned int i = 0; i < instruction->operands.size(); i++){
-        instruction->operands[i]->accept(*this);
-        argument_position += 6;
     }
 }
 
@@ -122,7 +137,7 @@ void code_generator::visit(const symbol * symbol){
 
 void code_generator::encode_word_argument(processor::word value, bool force_nextword){
     
-    if(value <= 0x1f && !force_nextword){
+    if(value >= -1 && value <= 30 && !force_nextword && argument_name == ARG_A){
         *operation |= (0x20 + value) << argument_position;
     }
     else{
