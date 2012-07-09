@@ -10,6 +10,8 @@ processor::processor()
 
 void processor::run(){
     
+    bool interrupt_queue_was_disabled = interrupt_queue_enabled == false;
+    
     word instruction = ram[pc++];
     
     if((instruction & 0xf) != 0x0){
@@ -19,7 +21,7 @@ void processor::run(){
         run_nonbasic_instruction(instruction);
     }
     
-    if(!interrupt_queue.empty() && interrupt_queue_enabled == false){
+    if(!interrupt_queue.empty() && interrupt_queue_enabled == false && interrupt_queue_was_disabled){
         setup_interrupt_handler(interrupt_queue.front());
         interrupt_queue.pop_front();
     }

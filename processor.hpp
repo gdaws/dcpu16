@@ -80,7 +80,6 @@ public:
     processor();
     void run();
 private:
-    
     void run_basic_instruction(word);
     void run_nonbasic_instruction(word);
     
