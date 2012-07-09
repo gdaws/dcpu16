@@ -59,7 +59,7 @@ static void dump_registers(processor & p){
     }
     std::cout<<std::endl;
     
-    std::cout<<"O: "<<std::setw(4)<<std::setfill('0')<<p.overflow<<std::endl;
+    std::cout<<"EX: "<<std::setw(4)<<std::setfill('0')<<p.ex<<std::endl;
 }
 
 static void quit(processor & p){
