@@ -138,7 +138,7 @@ void code_generator::visit(const symbol * symbol){
 void code_generator::encode_word_argument(processor::word value, bool force_nextword){
     
     if(value >= -1 && value <= 30 && !force_nextword && argument_name == ARG_A){
-        *operation |= (0x20 + value) << argument_position;
+        *operation |= (0x20 + value + 1) << argument_position;
     }
     else{
         *operation |= 0x1f << argument_position;
