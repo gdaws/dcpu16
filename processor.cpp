@@ -1,9 +1,10 @@
 #include "processor.hpp"
+#include "device.hpp"
 #include <limits>
 #include <iostream>
 
 processor::processor()
-:perform_execution(true){
+:devices_connected(0), ia(0), perform_execution(true), interrupt_queue_enabled(false){
     
 }
 
@@ -11,11 +12,22 @@ void processor::run(){
     
     word instruction = ram[pc++];
     
-    word opcode = instruction & 0xf;
-    
-    if(opcode == 0x0){
-        return run_nonbasic_instruction(instruction);
+    if((instruction & 0xf) != 0x0){
+        run_basic_instruction(instruction);
     }
+    else{
+        run_nonbasic_instruction(instruction);
+    }
+    
+    if(!interrupt_queue.empty() && interrupt_queue_enabled == false){
+        setup_interrupt_handler(interrupt_queue.front());
+        interrupt_queue.pop_front();
+    }
+}
+
+void processor::run_basic_instruction(word instruction){
+    
+    word opcode = instruction & 0xf;
     
     word & a = *decode_value<1>(instruction >> 10, internal_reg + 0);
     word & b = *decode_value<2>((instruction >> 5) & 0x1f, internal_reg + 1);
@@ -220,14 +232,101 @@ void processor::run_nonbasic_instruction(word instruction){
     }
     
     switch(static_cast<NONBASIC_OPCODES>(opcode)){
+        
         case JSR:
             ram[--sp] = pc;
             pc = a;
             return;
+            
+        case INT:
+            
+            if(a == 0){
+                return;
+            }
+            
+            if(interrupt_queue_enabled){
+                
+                if(interrupt_queue.size() == MAX_INTERRUPT_QUEUE_SIZE){
+                    throw processor::exception("processor on fire");
+                }
+                
+                interrupt_queue.push_back(std::make_tuple(ia, a));
+            }
+            else{
+                setup_interrupt_handler(ia, a);
+            }
+            
+            return;
+            
+        case IAG:
+            a = ia;
+            return;
+            
+        case IAS:
+            ia = a;
+            return;
+            
+        case RFI:
+            interrupt_queue_enabled = false;
+            reg[A] = ram[sp++];
+            pc = ram[sp++];
+            return;
+        
+        case IAQ:
+            interrupt_queue_enabled = (a > 0 ? true : false);
+            return;
+        
+        case HWN:
+            a = devices_connected;
+            return;
+            
+        case HWQ:{
+            
+            if(a >= devices_connected){
+                throw processor::exception("hardware index out of bounds");
+            }
+            
+            device::info info = devices[a]->get_info();
+            
+            reg[A] = info.hardware_id;
+            reg[B] = info.hardware_id >> 16;
+            
+            reg[C] = info.version;
+            
+            reg[X] = info.manufacturer_id;
+            reg[Y] = info.manufacturer_id >> 16;
+            
+            return;
+        }
+        case HWI:
+            
+            if(a >= devices_connected){
+                throw processor::exception("hardware index out of bounds");
+            }
+            
+            devices[a]->interrupt(this);
+            
+            return;
+            
         default:
             throw processor::exception("unrecognized opcode (in non-basic instruction)");
     }
     
+}
+
+void processor::setup_interrupt_handler(word routine_address, word message){
+    
+    interrupt_queue_enabled = true;
+    
+    ram[--sp] = pc;
+    ram[--sp] = reg[A];
+    
+    pc = routine_address;
+    reg[A] = message;
+}
+
+void processor::setup_interrupt_handler(const std::tuple<word, word> & interrupt){
+    return setup_interrupt_handler(std::get<0>(interrupt), std::get<1>(interrupt));
 }
 
 template<int argument>
